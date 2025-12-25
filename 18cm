@@ -1,0 +1,144 @@
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Variável global
+_G.KillAura = _G.KillAura or false
+
+-- Criação da Interface
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner_Main = Instance.new("UICorner")
+local UIStroke_Main = Instance.new("UIStroke")
+local Title = Instance.new("TextLabel")
+local ToggleButton = Instance.new("TextButton")
+local UICorner_Button = Instance.new("UICorner")
+local StatusLabel = Instance.new("TextLabel")
+local Glow = Instance.new("ImageLabel")
+
+-- Configurações da ScreenGui
+ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "18cmHub"
+ScreenGui.ResetOnSpawn = false
+
+-- Janela Principal
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.Position = UDim2.new(0.5, -100, 0.4, -75)
+MainFrame.Size = UDim2.new(0, 220, 0, 150)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ClipsDescendants = false
+
+UICorner_Main.CornerRadius = UDim.new(0, 15)
+UICorner_Main.Parent = MainFrame
+
+UIStroke_Main.Parent = MainFrame
+UIStroke_Main.Color = Color3.fromRGB(60, 60, 60)
+UIStroke_Main.Thickness = 2
+UIStroke_Main.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+-- Brilho de Fundo (Glow)
+Glow.Name = "Glow"
+Glow.Parent = MainFrame
+Glow.BackgroundTransparency = 1
+Glow.Position = UDim2.new(0, -15, 0, -15)
+Glow.Size = UDim2.new(1, 30, 1, 30)
+Glow.ZIndex = 0
+Glow.Image = "rbxassetid://4996891992" -- Sombra/Glow
+Glow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Glow.ImageOpacity = 0.5
+
+-- Título
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "18cm HUB"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 22
+
+-- Label de Status
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0, 0, 0, 40)
+StatusLabel.Size = UDim2.new(1, 0, 0, 25)
+StatusLabel.Font = Enum.Font.GothamMedium
+StatusLabel.Text = "Satus: DESLIGADO"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 14
+
+-- Botão Customizado
+ToggleButton.Parent = MainFrame
+ToggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ToggleButton.Position = UDim2.new(0.1, 0, 0.55, 0)
+ToggleButton.Size = UDim2.new(0.8, 0, 0, 40)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Text = "ATIVAR"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 16
+ToggleButton.AutoButtonColor = false
+
+UICorner_Button.CornerRadius = UDim.new(0, 10)
+UICorner_Button.Parent = ToggleButton
+
+-- Gradiente para o Botão
+local UIGradient = Instance.new("UIGradient")
+UIGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)), 
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 0, 0))
+}
+UIGradient.Parent = ToggleButton
+
+-- Efeito de Clique e Lógica
+local function startKillAura()
+    task.spawn(function()
+        while _G.KillAura do
+            pcall(function()
+                for _, v in pairs(game.Workspace.Enemies:GetDescendants()) do
+                    if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
+                        if v.Humanoid.Health > 0 then
+                            repeat
+                                task.wait(0.1)
+                                v.Humanoid.Health = 0
+                                sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
+                            until not _G.KillAura or not v.Parent or v.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end)
+            task.wait(0.2)
+        end
+    end)
+end
+
+ToggleButton.MouseButton1Click:Connect(function()
+    _G.KillAura = not _G.KillAura
+    
+    -- Animação de escala ao clicar
+    ToggleButton:TweenSize(UDim2.new(0.75, 0, 0, 35), "Out", "Quad", 0.1, true)
+    task.wait(0.1)
+    ToggleButton:TweenSize(UDim2.new(0.8, 0, 0, 40), "Out", "Quad", 0.1, true)
+
+    if _G.KillAura then
+        -- Estilo Ativado
+        UIGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 255, 50)), 
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 150, 0))
+        }
+        ToggleButton.Text = "DESATIVAR"
+        StatusLabel.Text = "Status: LIGADO"
+        StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        startKillAura()
+    else
+        -- Estilo Desativado
+        UIGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)), 
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 0, 0))
+        }
+        ToggleButton.Text = "ATIVAR"
+        StatusLabel.Text = "Status: DESLIGADO"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    end
+end)
+
